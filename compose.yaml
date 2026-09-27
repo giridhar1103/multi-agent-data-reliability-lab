@@ -1,0 +1,53 @@
+name: multi-agent-data-reliability-lab
+services:
+  lab:
+    build: .
+    ports: ["127.0.0.1:8000:8000"]
+    environment:
+      LAB_DATA_DIR: /data
+      LAB_MODE: ${LAB_MODE:-demo}
+      LAB_MODEL: ${LAB_MODEL:-qwen3:8b}
+      LAB_MODEL_BASE_URL: ${LAB_MODEL_BASE_URL:-http://host.docker.internal:11434/v1}
+      LAB_API_KEY: ${LAB_API_KEY:-}
+      LAB_MAX_MODEL_CALLS: ${LAB_MAX_MODEL_CALLS:-8}
+      LAB_MAX_OUTPUT_TOKENS: ${LAB_MAX_OUTPUT_TOKENS:-1200}
+      LAB_MODEL_TIMEOUT: ${LAB_MODEL_TIMEOUT:-90}
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-}
+      LANGSMITH_TRACING: "false"
+    volumes: ["lab-data:/data"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    read_only: true
+    tmpfs: ["/tmp:size=128m"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 128
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    profiles: ["observability"]
+    ports: ["127.0.0.1:16686:16686"]
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    profiles: ["observability"]
+    ports: ["127.0.0.1:9090:9090"]
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+  grafana:
+    image: grafana/grafana:11.3.1
+    profiles: ["observability"]
+    ports: ["127.0.0.1:3000:3000"]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    volumes:
+      - ./observability/grafana:/etc/grafana/provisioning:ro
+      - ./observability/dashboards:/var/lib/grafana/dashboards:ro
+volumes:
+  lab-data:
+  prometheus-data:
+

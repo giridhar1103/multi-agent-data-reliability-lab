@@ -1,0 +1,31 @@
+name: quality
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.lock && pip install -e . pytest ruff
+      - run: ruff check src tests
+      - run: pytest -q
+      - run: reliability-lab eval --seeds 11 --output artifacts/ci-eval
+      - uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-evaluation
+          path: artifacts/ci-eval/results.*
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config --quiet
+      - run: docker compose up -d --build --wait lab
+      - run: curl --fail http://localhost:8000/health
+      - run: docker compose exec -T lab reliability-lab run --scenario duplicate_join
+      - if: always()
+        run: docker compose down
+
