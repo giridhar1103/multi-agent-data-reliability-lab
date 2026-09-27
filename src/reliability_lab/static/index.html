@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Multi-Agent Data Reliability Lab</title><link rel="stylesheet" href="/static/style.css"></head>
+<body>
+<header><a class="brand" href="/">◈ <span>RELIABILITY / LAB</span></a><span class="local">LOCAL WORKSPACE <i></i></span></header>
+<main>
+<section class="intro"><div><p class="eyebrow">MULTI-AGENT DATA RELIABILITY LAB</p><h1>From broken metrics<br>to verified evidence.</h1><p class="lede">Investigate data incidents. Challenge the diagnosis.<br>Test the repair before you trust it.</p></div><div class="architecture"><span>PLAN</span><b>↙ &nbsp; ↘</b><div>DATA AGENT &nbsp; CODE AGENT</div><b>↘ &nbsp; ↙</b><span>REVIEW → REPAIR → VERIFY</span><small>Persisted graph · isolated SQL · evidence trail</small></div></section>
+<section class="controls" aria-label="Investigation configuration">
+<label>INCIDENT<select id="scenario"><option value="duplicate_join">Revenue inflated by duplicate join</option><option value="refund_sign">Refund sign regression</option><option value="status_filter">Cancelled orders in revenue</option><option value="healthy">Healthy pipeline control</option><option value="upstream_missing">Missing upstream records</option><option value="unknown">Ambiguous metric contract</option></select></label>
+<label>EXECUTION<select id="mode"><option value="demo">Demo · scripted / no LLM</option><option value="live">Live · configured model</option></select></label>
+<label>TOPOLOGY<select id="topology"><option value="multi">Multi-agent</option><option value="single">Single-agent baseline</option></select></label>
+<button id="run">Investigate incident <span>↗</span></button>
+</section>
+<p id="notice" class="notice" role="status">Demo mode uses deterministic policies. Live-model benchmarks are measured separately.</p>
+<section class="workspace">
+<aside><div class="section-title">INVESTIGATIONS <span id="count">0</span></div><div id="history"><p class="muted">Your runs will appear here.</p></div><div class="aside-note">REPRODUCIBLE BY DESIGN<br><p>Versioned inputs. Evidence citations. Independent regression checks.</p><a href="/docs" target="_blank" rel="noopener">Explore the API ↗</a><a href="/metrics" target="_blank" rel="noopener">Prometheus metrics ↗</a></div></aside>
+<article>
+<div class="run-heading"><div><p class="eyebrow">INVESTIGATION DETAIL</p><h2 id="headline">Ready to investigate</h2></div><span id="badge" class="badge">IDLE</span></div>
+<div id="summary" class="summary"><p>Run the bundled commerce incident to inspect the agent trace, evidence, and proposed SQL repair.</p></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="trace">Agent trace</button><button role="tab" aria-selected="false" data-tab="evidence">Evidence</button><button role="tab" aria-selected="false" data-tab="repair">SQL repair</button><button role="tab" aria-selected="false" data-tab="checks">Verification</button></div>
+<div id="trace" class="panel"><p class="muted">No stages executed yet.</p></div><div id="evidence" class="panel" hidden></div><div id="repair" class="panel" hidden></div><div id="checks" class="panel" hidden></div>
+<div id="downloads" class="downloads"></div>
+</article>
+</section>
+<footer>ENGINEERED FOR INSPECTION <span>Synthetic laboratory · No production data is changed</span></footer>
+</main><script src="/static/app.js" defer></script></body></html>
+

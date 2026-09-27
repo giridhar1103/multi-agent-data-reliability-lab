@@ -1,0 +1,124 @@
+{
+  "run_id": "8538e2d9c7664b06a1817b6e6389b4a5",
+  "mode": "demo",
+  "topology": "multi",
+  "outcome": "verified_repair",
+  "model": "scripted-policy (no LLM)",
+  "decision": {
+    "cause": "duplicate_join",
+    "explanation": "Joining raw one-to-many refunds repeats order gross before aggregation.",
+    "evidence_ids": [
+      "code.sql",
+      "data.profile"
+    ],
+    "action": "repair"
+  },
+  "verification": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "incident_snapshot",
+        "passed": true
+      },
+      {
+        "name": "regression_0",
+        "passed": true
+      },
+      {
+        "name": "regression_1",
+        "passed": true
+      },
+      {
+        "name": "regression_2",
+        "passed": true
+      }
+    ],
+    "method": "Independent Python oracle on incident and three unseen-in-context synthetic snapshots"
+  },
+  "evidence": {
+    "data.profile": {
+      "orders": 30,
+      "refunds": 15,
+      "orders_with_multiple_refunds": 5,
+      "cancelled_orders": 4,
+      "refund_amounts_positive": true
+    },
+    "source.manifest": {
+      "expected_orders": 30,
+      "observed_orders": 30
+    },
+    "metric.contract": "Return one row per order_day, columns order_day and net_revenue. Net revenue is completed-order gross less positive refund amounts. Exclude cancelled orders. An order can have multiple refunds; count its gross once. Keep completed orders with no refunds. Amounts use the same currency. Missing source records cannot be repaired by guessing values.",
+    "code.sql": "SELECT o.order_day,\nROUND(SUM(o.gross - COALESCE(r.amount, 0)), 2) AS net_revenue\nFROM orders o LEFT JOIN refunds r ON o.order_id = r.order_id\nWHERE o.status = 'completed'\nGROUP BY o.order_day ORDER BY o.order_day",
+    "lineage.graph": [
+      [
+        "orders",
+        "daily_revenue"
+      ],
+      [
+        "refunds",
+        "daily_revenue"
+      ],
+      [
+        "daily_revenue",
+        "revenue_dashboard"
+      ]
+    ],
+    "current.output": {
+      "columns": [
+        "order_day",
+        "net_revenue"
+      ],
+      "rows": [
+        [
+          "2026-09-01",
+          887.0
+        ],
+        [
+          "2026-09-02",
+          697.0
+        ],
+        [
+          "2026-09-03",
+          708.0
+        ],
+        [
+          "2026-09-04",
+          816.0
+        ],
+        [
+          "2026-09-05",
+          895.0
+        ]
+      ]
+    }
+  },
+  "plan": {
+    "objective": "Identify a supported cause and verify any proposed SQL repair.",
+    "data_question": "Check completeness, refunds, and cancellation distribution.",
+    "code_question": "Check aggregation grain, refund sign, and status filtering."
+  },
+  "findings": [
+    {
+      "cause": "unknown",
+      "explanation": "Refund cardinality, cancelled orders, and positive refund amounts require checking the SQL grain and business contract.",
+      "evidence_ids": [
+        "data.profile",
+        "metric.contract"
+      ]
+    },
+    {
+      "cause": "duplicate_join",
+      "explanation": "Joining raw one-to-many refunds repeats order gross before aggregation.",
+      "evidence_ids": [
+        "code.sql",
+        "data.profile"
+      ]
+    }
+  ],
+  "original_sql": "SELECT o.order_day,\nROUND(SUM(o.gross - COALESCE(r.amount, 0)), 2) AS net_revenue\nFROM orders o LEFT JOIN refunds r ON o.order_id = r.order_id\nWHERE o.status = 'completed'\nGROUP BY o.order_day ORDER BY o.order_day",
+  "candidate_sql": "SELECT o.order_day,\nROUND(SUM(o.gross - COALESCE(r.refunded, 0)), 2) AS net_revenue\nFROM orders o\nLEFT JOIN (SELECT order_id, SUM(amount) AS refunded FROM refunds GROUP BY order_id) r\nON o.order_id = r.order_id\nWHERE o.status = 'completed'\nGROUP BY o.order_day ORDER BY o.order_day",
+  "diff": "--- models/daily_revenue.sql\n+++ candidate/daily_revenue.sql\n@@ -1,5 +1,7 @@\n SELECT o.order_day,\n-ROUND(SUM(o.gross - COALESCE(r.amount, 0)), 2) AS net_revenue\n-FROM orders o LEFT JOIN refunds r ON o.order_id = r.order_id\n+ROUND(SUM(o.gross - COALESCE(r.refunded, 0)), 2) AS net_revenue\n+FROM orders o\n+LEFT JOIN (SELECT order_id, SUM(amount) AS refunded FROM refunds GROUP BY order_id) r\n+ON o.order_id = r.order_id\n WHERE o.status = 'completed'\n GROUP BY o.order_day ORDER BY o.order_day",
+  "snapshot_hash": "d2e014e993f402f7609fcfde462aa2027d9259bbcaebd66944a0a2c3f89e8e5b",
+  "code_hash": "6db557ad456729a08725c081616b79140dfff1cabe32afff0a085bdd77feca28",
+  "limitations": "Synthetic SQL laboratory; verification covers specified snapshots only. No production repair is applied."
+}

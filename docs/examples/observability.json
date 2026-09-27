@@ -1,0 +1,66 @@
+{
+  "run_ids": [
+    "4b9e68ef81be4f1b95d0a6c48434a5d0",
+    "ca17088aaeb245c99d8d63c4db75b39b",
+    "b89a3b46949d479698d7319888a2a1bf"
+  ],
+  "prometheus": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "__name__": "lab_runs_total",
+            "instance": "lab:8000",
+            "job": "reliability-lab",
+            "mode": "demo",
+            "outcome": "verified_repair"
+          },
+          "value": [
+            1790496067.668,
+            "2"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "lab_runs_total",
+            "instance": "lab:8000",
+            "job": "reliability-lab",
+            "mode": "demo",
+            "outcome": "no_change"
+          },
+          "value": [
+            1790496067.668,
+            "1"
+          ]
+        },
+        {
+          "metric": {
+            "__name__": "lab_runs_total",
+            "instance": "lab:8000",
+            "job": "reliability-lab",
+            "mode": "demo",
+            "outcome": "abstained"
+          },
+          "value": [
+            1790496067.668,
+            "1"
+          ]
+        }
+      ]
+    }
+  },
+  "trace_id": "5279a8d123a7728c0ca7af3f3f3837ad",
+  "span_count": 8,
+  "operations": [
+    "code_investigator",
+    "planner",
+    "data_investigator",
+    "deterministic_verifier",
+    "repair_proposer",
+    "investigation",
+    "reviewer",
+    "report_export"
+  ]
+}
