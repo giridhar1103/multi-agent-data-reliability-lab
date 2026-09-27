@@ -1,10 +1,10 @@
 # Architecture and operating boundaries
 
-The implemented first release is a SQL-first synthetic data incident laboratory. It does not yet ingest arbitrary dbt projects or repair production warehouses.
+The lab investigates SQL incidents in a synthetic commerce dataset. It runs locally, saves each investigation, and exports proposed repairs. Support for importing dbt projects is planned.
 
 ![Implemented system](images/architecture.svg)
 
-## Agent workflow
+## **Agent workflow**
 
 ```mermaid
 flowchart TD
@@ -29,7 +29,7 @@ The multi-agent topology uses separate reasoning contexts and a LangGraph fan-ou
 
 Agents in this release reason over a bounded evidence bundle; they do not freely browse repositories or select arbitrary tools. Deterministic code collects the observations. The model proposes SQL, while execution and verification remain code-controlled.
 
-## Deployment
+## **Deployment**
 
 ```mermaid
 flowchart LR
@@ -48,13 +48,13 @@ flowchart LR
 
 The Compose observability profile provisions Jaeger, Prometheus, and Grafana. Local persisted events always work without those services. Set the OTLP endpoint when enabling the profile. Jaeger uses ephemeral trace storage in this development profile; local run events and checkpoints persist in the application volume.
 
-## State, recovery, and idempotency
+## **State, recovery, and idempotency**
 
 API idempotency keys bind to request hashes; reuse with a different request is a conflict. A single worker atomically claims a queued run. Startup requeues interrupted jobs. LangGraph reloads their checkpoints. Parsed model outputs are cached by role/context/schema/model/transport; model-call reservations persist across restart. A crash after a provider request but before cache commit may consume another call on retry; exactly-once external inference is not promised.
 
 Artifact writes use temporary files followed by replacement. Completed runs return their existing result. The API is intended for one process / one Uvicorn worker. Horizontal scaling, distributed leases, cancellation, and multi-user auth are future work.
 
-## Agent contracts
+## **Agent contracts**
 
 | Role | Output | Boundary |
 |---|---|---|
@@ -67,13 +67,13 @@ Artifact writes use temporary files followed by replacement. Completed runs retu
 
 Evidence citation existence is enforced; semantic support is not proven automatically. Live benchmarks report wrong diagnoses even when a conservative gate prevents a repair.
 
-## Execution boundary
+## **Execution boundary**
 
 SQLGlot validates a single SELECT with approved tables and functions. DuckDB external access is disabled. Each query executes in a new process with a deadline, bounded result rows, one DuckDB thread, and a DuckDB memory cap. The child receives no provider credentials.
 
 This is defense in depth for a local synthetic laboratory, not a hardened arbitrary-code sandbox. DuckDB's memory cap is not an OS process-memory limit. Compose adds service memory/CPU/PID limits, a read-only root filesystem, dropped capabilities, and a writable data volume. There is no Docker socket mount and no generated Python execution.
 
-## Deliberate choices
+## **Design decisions**
 
 - SQLite instead of Postgres: one-machine reproducibility and fewer mandatory services. Preserve Store boundaries for a later backend.
 - SQL-first instead of arbitrary Python: testable execution surface with a conservative allowlist.

@@ -1,21 +1,33 @@
+<div align="center">
+
 # Multi-Agent Data Reliability Lab
 
-**Investigate broken metrics, challenge the diagnosis, and verify a proposed SQL repair.**
+### **Find the bad join. Explain the broken metric. Test the fix.**
 
-[![quality](https://github.com/giridhar1103/multi-agent-data-reliability-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/giridhar1103/multi-agent-data-reliability-lab/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
-![Docker](https://img.shields.io/badge/Docker-local%20first-bcf781)
-![License](https://img.shields.io/badge/license-MIT-blue)
+A local workspace for investigating SQL data incidents with cooperating agents.
 
-Stateful multi-agent orchestration, typed evidence, restricted SQL execution, independent verification, restart recovery, and reproducible evaluations for the data domain.
+[![Build](https://github.com/giridhar1103/multi-agent-data-reliability-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/giridhar1103/multi-agent-data-reliability-lab/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
+[![License](https://img.shields.io/badge/License-MIT-bcf781)](LICENSE)
 
-> **First-release scope:** synthetic commerce data and SQL transformations. Demo mode uses scripted policies; live mode calls your configured model. Arbitrary dbt-project ingestion and production warehouse repair are not implemented yet.
+[**Quick start**](#quick-start) · [**Architecture**](#architecture) · [**Results**](#evaluation-results) · [**Documentation**](#documentation)
 
-![Actual investigation interface](docs/images/investigation.png)
+</div>
 
-## Run locally
+![Investigation workspace showing a diagnosed revenue incident](docs/images/investigation.png)
 
-Requires Docker with Linux containers. No API key is needed for the deterministic demo.
+## **Why this exists**
+
+A revenue query can run successfully and still return the wrong number. Join orders to a refunds table, and an order with two refunds can count twice. The dashboard looks plausible. The pipeline stays green.
+
+This project follows that kind of incident from diagnosis to a tested SQL proposal. Data and code investigators examine the same incident from different angles, a reviewer checks their findings, and a separate verifier tests the proposed query. Every run leaves a trace, an evidence bundle, and a report you can inspect.
+
+**The current dataset is synthetic commerce data.** Six bundled scenarios cover broken joins, refund signs, cancelled orders, healthy pipelines, missing records, and missing metric definitions. The app exports repairs for review; it does not apply them to a warehouse.
+
+## **Quick start**
+
+You need Docker with Linux containers. The demo runs without an API key.
 
 ```sh
 git clone https://github.com/giridhar1103/multi-agent-data-reliability-lab.git
@@ -23,47 +35,55 @@ cd multi-agent-data-reliability-lab
 docker compose up --build -d --wait
 ```
 
-Open **http://localhost:8000**, choose an incident, and click **Investigate incident**.
+Open **[localhost:8000](http://localhost:8000)** and click **Investigate incident**. Start with the duplicate-join scenario, then inspect the agent trace, proposed SQL, and verification checks.
 
-If that port is occupied, set `LAB_PORT=8001` in `.env` and open http://localhost:8001 instead.
+| Try this | What to look for |
+|---|---|
+| **Duplicate join** | A repair that aggregates refunds before joining orders |
+| **Healthy pipeline** | A no-change decision |
+| **Missing upstream records** | Abstention when a SQL rewrite cannot recover lost data |
+| **Ambiguous metric contract** | Abstention when the definition of revenue is missing |
+
+If port 8000 is busy, set `LAB_PORT=8001` in `.env`. Run data survives container restarts in a named volume.
+
+<details>
+<summary><strong>CLI commands</strong></summary>
 
 ```sh
+# Investigate one incident
 docker compose exec lab reliability-lab run --scenario duplicate_join
+
+# Run the evaluation suite
 docker compose exec lab reliability-lab eval --output /data/evals
+
+# Stop the stack; keep saved runs
 docker compose down
 ```
 
-Run data persists in a named volume. The application exports candidates for review; it does not apply repairs or modify source data.
+</details>
 
-## The incident
+## **Architecture**
 
-A revenue model joins orders directly to a one-to-many refunds table. Orders with multiple refunds contribute their gross amount multiple times. The SQL executes successfully while producing incorrect revenue.
+![Agent workflow, persistence, SQL execution, and observability](docs/images/architecture.svg)
 
-The lab collects evidence, runs independent data/code investigations, reviews the diagnosis, proposes a repair, and checks it against an independent Python oracle on the incident and three additional regression snapshots.
+**Plan → investigate in parallel → review → propose → verify.** The reviewer can also choose no change or abstain. A candidate must match an independent Python calculation on the incident snapshot and three additional regression snapshots.
 
-Other cases cover refund signs, cancelled orders, healthy controls, missing records, and unavailable metric definitions. Missing records and semantics trigger abstention instead of invented repairs.
-
-## Architecture
-
-![Implemented system](docs/images/architecture.svg)
-
-| Component | Engineering responsibility |
+| Layer | Responsibility |
 |---|---|
-| LangGraph | Persisted state, parallel specialists, fan-in review, conditional outcomes |
-| Pydantic | Strict output contracts and evidence-reference validation |
-| Model adapter | BYOK/local HTTP inference, bounded retry, persisted call budget, parsed-response cache |
-| SQL executor | AST allowlist, external I/O disabled, short-lived processes, deadlines, row limits |
-| Independent verifier | Expected values calculated without candidate SQL or an LLM judge |
-| SQLite + artifacts | Durable runs, atomic claims, checkpoints, idempotency, input hashes |
-| FastAPI + CLI | Local run UI, typed API, exported JSON/Markdown/SQL/diffs |
-| OTel + Prometheus | Stage traces, outcomes, duration histograms, model usage |
-| CI | Tests, lint, synthetic evaluation, container startup and execution |
+| **LangGraph** | Separate agent contexts, parallel investigation, conditional routing, checkpoints |
+| **Pydantic** | Structured responses and validation of evidence references |
+| **Model adapter** | Configurable inference, bounded retries, call budgets, cached responses |
+| **DuckDB + SQLGlot** | Restricted SELECT queries, process deadlines, row and memory limits |
+| **Verification** | Expected values calculated independently of the candidate SQL |
+| **SQLite** | Run queue, restart recovery, idempotency, persisted events |
+| **FastAPI + CLI** | Investigation workspace and downloadable JSON, Markdown, SQL, and diffs |
+| **OpenTelemetry + Prometheus** | Stage traces, outcome counters, latency, model usage |
 
-[Architecture and boundaries](docs/architecture.md) · [Evaluation methodology](docs/evaluation.md) · [Security](SECURITY.md)
+[Read the architecture notes →](docs/architecture.md)
 
-## Power it with your model
+## **Use your own model**
 
-Copy `.env.example` to `.env`. Configure a chat-completions-compatible endpoint:
+Copy `.env.example` to `.env` and configure a Chat Completions-compatible endpoint:
 
 ```dotenv
 LAB_MODEL_BASE_URL=https://your-provider.example/v1
@@ -73,21 +93,15 @@ LAB_MAX_MODEL_CALLS=8
 LAB_MAX_OUTPUT_TOKENS=1200
 ```
 
-Run `docker compose up -d` and select **Live** in the interface, or:
+Run `docker compose up -d`, then select **Live** in the interface.
 
-```sh
-docker compose exec lab reliability-lab run --mode live --scenario duplicate_join
-```
+**For Ollama**, use `http://host.docker.internal:11434/v1`, an installed model ID, and an empty API key. The model must support the adapter's JSON response format. Credentials stay on the server; incident context is sent to the endpoint you configure.
 
-For local Ollama inference, use `http://host.docker.internal:11434/v1`, an installed model ID, and an empty API key. The adapter uses Chat Completions with JSON-object output; not every vendor's native API is compatible. A failed live run remains failed, with no demo fallback.
+**Demo mode** uses scripted policies. **Live mode** calls the configured model and reports provider failures without falling back to demo results. An optional host CLI transport is covered in the [evaluation guide](docs/evaluation.md#live-inference).
 
-Credentials stay on the server. Live model context goes to the configured endpoint. A local application does not imply local inference.
+## **Observability**
 
-An optional host-only **headless Codex benchmark transport** uses the author's CLI sign-in. It is documented in [evaluation.md](docs/evaluation.md) and is not required by the Docker application.
-
-## Observability
-
-Set this in `.env`:
+Add the trace endpoint to `.env`, then start the observability profile:
 
 ```dotenv
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://jaeger:4318/v1/traces
@@ -97,44 +111,55 @@ OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://jaeger:4318/v1/traces
 docker compose --profile observability up -d --wait
 ```
 
-| Surface | URL | Inspect |
+| Service | Address | What it shows |
 |---|---|---|
-| Application | http://localhost:8000 | Persisted events, evidence, SQL, verification |
-| API reference | http://localhost:8000/docs | Run creation, status, resume, artifacts |
-| Jaeger | http://localhost:16686 | reliability-lab traces and spans |
-| Prometheus | http://localhost:9090 | Outcomes, latency, provider usage |
-| Grafana | http://localhost:3000 | Provisioned Reliability Lab dashboard |
+| **Application** | [localhost:8000](http://localhost:8000) | Investigations, evidence, SQL, checks |
+| **API docs** | [localhost:8000/docs](http://localhost:8000/docs) | Run, resume, and artifact endpoints |
+| **Jaeger** | [localhost:16686](http://localhost:16686) | Agent spans and execution timing |
+| **Prometheus** | [localhost:9090](http://localhost:9090) | Run outcomes and usage metrics |
+| **Grafana** | [localhost:3000](http://localhost:3000) | Provisioned metrics dashboard |
 
-All services bind to loopback. Grafana allows anonymous **viewing** in this local profile; do not expose it publicly. Jaeger uses ephemeral development storage; application events persist independently. Prometheus counters reset on process restart.
+![An eight-span investigation in Jaeger](docs/images/jaeger.png)
 
-![Actual agent trace in Jaeger](docs/images/jaeger.png)
+All services bind to localhost. Grafana allows anonymous viewing in this profile. Jaeger traces are temporary; application events persist. See [operating boundaries](SECURITY.md) before changing network access.
 
-![Actual provisioned Grafana dashboard](docs/images/grafana.png)
+## **Evaluation results**
 
-These captures use demo runs: model panels show no data because no model was called. [Telemetry evidence](docs/examples/observability.json) records the observed counters and eight-span investigation. [Validation and screenshot reproduction](docs/validation.md).
+The suite compares single-agent and multi-agent runs across the same six incident families. It records diagnosis, outcome, repair checks, failures, duration, calls, and reported token usage.
 
-## Evaluation with honest labels
+| Recorded run | Single-agent | Multi-agent | Interpretation |
+|---|---:|---:|---|
+| **Scripted demo** | 24/24 expected outcomes | 24/24 expected outcomes | Integration checks; zero model calls |
+| **Live headless** | 6/6 expected outcomes | 2/6 expected outcomes; 4 inference failures | Exploratory run with an unpinned CLI model |
 
-The recorded demo suite contains **48 runs**: six incident families × four data seeds × two topologies. All 48 produced the expected synthetic outcome, with **zero model calls**. This establishes integration behavior for authored policies, not LLM accuracy.
+The live run is too small and too confounded by inference failures to rank the two approaches. All attempted cases remain in the results.
 
-- [Recorded demo results](docs/evals/demo/results.md) and [raw rows](docs/evals/demo/results.json).
-- [Live headless results and failure analysis](docs/evals/headless/README.md): 12 attempted runs, including four inference failures.
-- [Methodology, limitations, and live commands](docs/evaluation.md).
-- [Example evidence bundle](docs/examples/investigation.json).
+[**Methodology**](docs/evaluation.md) · [**Demo results**](docs/evals/demo/results.md) · [**Live failure analysis**](docs/evals/headless/README.md) · [**Validation**](docs/validation.md)
 
-Both topologies receive the same available evidence and model-call ceiling, but realized token use differs. The suite does not establish multi-agent superiority.
+<details>
+<summary><strong>Results chart and workspace gallery</strong></summary>
 
-![Recorded evaluation outcomes, with failures retained](docs/images/evaluation.png)
+### Recorded outcomes
+![Recorded demo and live outcomes](docs/images/evaluation.png)
 
-![Actual candidate SQL](docs/images/sql-repair.png)
+### SQL proposal
+![Candidate query and downloadable repair artifacts](docs/images/sql-repair.png)
 
-![Actual independent verification](docs/images/verification.png)
+### Regression checks
+![Independent verification results](docs/images/verification.png)
 
-## Develop and test
+### Grafana dashboard
+![Run outcomes and stage latency in Grafana](docs/images/grafana.png)
+
+The dashboard capture uses demo runs, so the model-call and token panels have no data. [Recorded telemetry](docs/examples/observability.json).
+
+</details>
+
+## **Development**
 
 ```sh
 python -m venv .venv
-# Activate .venv for your shell, then:
+# Activate the environment, then:
 pip install -r requirements.lock
 pip install -e ".[dev]"
 pytest -q
@@ -142,25 +167,30 @@ ruff check src tests scripts
 reliability-lab serve
 ```
 
-Tests cover incident outcomes, external/malicious SQL rejection, deadlines, independent verification, API conflicts, checkpoint resume, model caches/budgets, and live-provider failures.
+CI runs tests, lint, a synthetic evaluation, and a Docker startup/repair check. Runtime dependencies are pinned in `requirements.lock`; the Python base image is pinned by digest.
 
-Runtime versions are pinned in `requirements.lock`; the Python image is digest-pinned. For a network with a private TLS-inspection CA, use a trusted PEM bundle as an ephemeral build secret:
+See [CONTRIBUTING.md](CONTRIBUTING.md) for incident fixtures, screenshot capture, and builds behind a private certificate authority.
 
-```sh
-docker build --secret id=pip_ca,src=/path/to/trusted-ca.pem -t multi-agent-data-reliability-lab-lab .
-docker compose up -d --no-build
-```
+## **What's next**
 
-## Next milestones
+- **Real project input:** dbt manifests, run results, contracts, and DuckDB snapshots.
+- **Broader evaluation:** unfamiliar schemas, multiple faults, independently written incidents, and pinned-model comparisons.
+- **Adaptive investigation:** bounded tool selection and replanning, measured against the existing baseline.
 
-- Versioned adapter for real dbt manifests, run results, contracts, and DuckDB snapshots.
-- Independently authored incidents, schema variations, multi-fault cases, and held-out families.
-- Bounded diagnostic-tool selection and evidence-driven replanning, with measured ablations.
-- Cancellation, distributed leases, and Postgres when concurrent usage warrants them.
-- Pinned-model comparisons, token-normalized tradeoffs, and published failure analyses.
+The current service uses one worker and SQLite. Multi-user access, distributed execution, and production warehouse integration are outside this release.
 
-## Design references
+## **Documentation**
 
-Inspired by [LangGraph persistence](https://docs.langchain.com/oss/python/langgraph/persistence), [CrewAI's Flow-first approach](https://docs.crewai.com/en/concepts/production-architecture), [R&D-Agent](https://github.com/microsoft/RD-Agent), [WrenAI semantic context](https://github.com/Canner/WrenAI), and [multi-agent failure research](https://arxiv.org/abs/2503.13657). Implementation and visual assets are original.
+| Guide | Contents |
+|---|---|
+| [Architecture](docs/architecture.md) | Agent responsibilities, state, execution boundaries, design decisions |
+| [Evaluation](docs/evaluation.md) | Ground truth, metrics, model configuration, benchmark limitations |
+| [Validation](docs/validation.md) | Recorded checks and screenshot reproduction |
+| [Contributing](CONTRIBUTING.md) | Local setup and adding incident scenarios |
+| [Security](SECURITY.md) | Data handling and deployment boundaries |
 
-MIT licensed. See [CONTRIBUTING.md](CONTRIBUTING.md).
+### **References**
+
+The design draws on [LangGraph persistence](https://docs.langchain.com/oss/python/langgraph/persistence), [CrewAI Flows](https://docs.crewai.com/en/concepts/production-architecture), [R&D-Agent](https://github.com/microsoft/RD-Agent), [WrenAI](https://github.com/Canner/WrenAI), and [research on multi-agent failures](https://arxiv.org/abs/2503.13657).
+
+[MIT License](LICENSE)
