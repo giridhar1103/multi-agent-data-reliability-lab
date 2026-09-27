@@ -1,0 +1,215 @@
+{
+  "mode": "live",
+  "scope": "Synthetic fixture integration evaluation",
+  "warning": "Demo uses scripted policies, not LLMs. Shared fixture families are not independent real-world tasks.",
+  "environment": {
+    "python": "3.11.0",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "git_commit": "b65cda936a415bf14b9b6a0b5d449c9f5c2e7721"
+  },
+  "seeds": [
+    11
+  ],
+  "summary": {
+    "single": {
+      "runs": 6,
+      "cause_accuracy": 1.0,
+      "outcome_accuracy": 1.0,
+      "outcome_wilson_95": [
+        0.6097,
+        1.0
+      ],
+      "verified_repair_rate": 1.0,
+      "unnecessary_repair_rate": 0.0,
+      "failures": 0,
+      "mean_latency_seconds": 19.373,
+      "model_calls": 9,
+      "provider_tokens": 107354
+    },
+    "multi": {
+      "runs": 6,
+      "cause_accuracy": 0.3333333333333333,
+      "outcome_accuracy": 0.3333333333333333,
+      "outcome_wilson_95": [
+        0.0968,
+        0.7
+      ],
+      "verified_repair_rate": 0.6666666666666666,
+      "unnecessary_repair_rate": 0.0,
+      "failures": 4,
+      "mean_latency_seconds": 28.536,
+      "model_calls": 13,
+      "provider_tokens": 158506
+    }
+  },
+  "rows": [
+    {
+      "run_id": "069e451ee0e741db80e177f693588b70",
+      "scenario": "duplicate_join",
+      "seed": 11,
+      "topology": "single",
+      "mode": "live",
+      "cause_correct": true,
+      "outcome_correct": true,
+      "outcome": "verified_repair",
+      "error": null,
+      "latency_seconds": 19.566,
+      "model_calls": 2,
+      "provider_tokens": 23836
+    },
+    {
+      "run_id": "a33a7581a82546fda941ae58afeed190",
+      "scenario": "refund_sign",
+      "seed": 11,
+      "topology": "single",
+      "mode": "live",
+      "cause_correct": true,
+      "outcome_correct": true,
+      "outcome": "verified_repair",
+      "error": null,
+      "latency_seconds": 24.82,
+      "model_calls": 2,
+      "provider_tokens": 23884
+    },
+    {
+      "run_id": "789a776979044d1c8e619ffc970bbd4e",
+      "scenario": "status_filter",
+      "seed": 11,
+      "topology": "single",
+      "mode": "live",
+      "cause_correct": true,
+      "outcome_correct": true,
+      "outcome": "verified_repair",
+      "error": null,
+      "latency_seconds": 25.016,
+      "model_calls": 2,
+      "provider_tokens": 23875
+    },
+    {
+      "run_id": "1d904eeb09164e9bb7c90b79c3486eca",
+      "scenario": "healthy",
+      "seed": 11,
+      "topology": "single",
+      "mode": "live",
+      "cause_correct": true,
+      "outcome_correct": true,
+      "outcome": "no_change",
+      "error": null,
+      "latency_seconds": 28.728,
+      "model_calls": 1,
+      "provider_tokens": 11940
+    },
+    {
+      "run_id": "a22e4b90ea984c1fa8c0417f661b6140",
+      "scenario": "upstream_missing",
+      "seed": 11,
+      "topology": "single",
+      "mode": "live",
+      "cause_correct": true,
+      "outcome_correct": true,
+      "outcome": "abstained",
+      "error": null,
+      "latency_seconds": 8.588,
+      "model_calls": 1,
+      "provider_tokens": 11940
+    },
+    {
+      "run_id": "0448f4a160a24ddc993a03af2c812998",
+      "scenario": "unknown",
+      "seed": 11,
+      "topology": "single",
+      "mode": "live",
+      "cause_correct": true,
+      "outcome_correct": true,
+      "outcome": "abstained",
+      "error": null,
+      "latency_seconds": 9.519,
+      "model_calls": 1,
+      "provider_tokens": 11879
+    },
+    {
+      "run_id": "e7fd0f43e8214d0fad28ee1f29ff547b",
+      "scenario": "duplicate_join",
+      "seed": 11,
+      "topology": "multi",
+      "mode": "live",
+      "cause_correct": true,
+      "outcome_correct": true,
+      "outcome": "verified_repair",
+      "error": null,
+      "latency_seconds": 89.843,
+      "model_calls": 5,
+      "provider_tokens": 62156
+    },
+    {
+      "run_id": "7c4d495f561743f291097e4100e70631",
+      "scenario": "refund_sign",
+      "seed": 11,
+      "topology": "multi",
+      "mode": "live",
+      "cause_correct": true,
+      "outcome_correct": true,
+      "outcome": "verified_repair",
+      "error": null,
+      "latency_seconds": 39.994,
+      "model_calls": 5,
+      "provider_tokens": 60321
+    },
+    {
+      "run_id": "117b5ee83bd64bf7aee3e6b8e4925f45",
+      "scenario": "status_filter",
+      "seed": 11,
+      "topology": "multi",
+      "mode": "live",
+      "cause_correct": false,
+      "outcome_correct": false,
+      "outcome": "failed",
+      "error": "RuntimeError",
+      "latency_seconds": 23.584,
+      "model_calls": 3,
+      "provider_tokens": 36029
+    },
+    {
+      "run_id": "bdd6795aad1540a4b6e2640f31f50c4f",
+      "scenario": "healthy",
+      "seed": 11,
+      "topology": "multi",
+      "mode": "live",
+      "cause_correct": false,
+      "outcome_correct": false,
+      "outcome": "failed",
+      "error": "RuntimeError",
+      "latency_seconds": 6.283,
+      "model_calls": 0,
+      "provider_tokens": 0
+    },
+    {
+      "run_id": "0f69586a751e42dca805487f32fc05c0",
+      "scenario": "upstream_missing",
+      "seed": 11,
+      "topology": "multi",
+      "mode": "live",
+      "cause_correct": false,
+      "outcome_correct": false,
+      "outcome": "failed",
+      "error": "RuntimeError",
+      "latency_seconds": 5.992,
+      "model_calls": 0,
+      "provider_tokens": 0
+    },
+    {
+      "run_id": "ef184f883ed84864bfd840214b0711dd",
+      "scenario": "unknown",
+      "seed": 11,
+      "topology": "multi",
+      "mode": "live",
+      "cause_correct": false,
+      "outcome_correct": false,
+      "outcome": "failed",
+      "error": "RuntimeError",
+      "latency_seconds": 5.518,
+      "model_calls": 0,
+      "provider_tokens": 0
+    }
+  ]
+}

@@ -25,6 +25,8 @@ docker compose up --build -d --wait
 
 Open **http://localhost:8000**, choose an incident, and click **Investigate incident**.
 
+If that port is occupied, set `LAB_PORT=8001` in `.env` and open http://localhost:8001 instead.
+
 ```sh
 docker compose exec lab reliability-lab run --scenario duplicate_join
 docker compose exec lab reliability-lab eval --output /data/evals
@@ -105,15 +107,24 @@ docker compose --profile observability up -d --wait
 
 All services bind to loopback. Grafana allows anonymous **viewing** in this local profile; do not expose it publicly. Jaeger uses ephemeral development storage; application events persist independently. Prometheus counters reset on process restart.
 
+![Actual agent trace in Jaeger](docs/images/jaeger.png)
+
+![Actual provisioned Grafana dashboard](docs/images/grafana.png)
+
+These captures use demo runs: model panels show no data because no model was called. [Telemetry evidence](docs/examples/observability.json) records the observed counters and eight-span investigation. [Validation and screenshot reproduction](docs/validation.md).
+
 ## Evaluation with honest labels
 
 The recorded demo suite contains **48 runs**: six incident families × four data seeds × two topologies. All 48 produced the expected synthetic outcome, with **zero model calls**. This establishes integration behavior for authored policies, not LLM accuracy.
 
 - [Recorded demo results](docs/evals/demo/results.md) and [raw rows](docs/evals/demo/results.json).
+- [Live headless results and failure analysis](docs/evals/headless/README.md): 12 attempted runs, including four inference failures.
 - [Methodology, limitations, and live commands](docs/evaluation.md).
 - [Example evidence bundle](docs/examples/investigation.json).
 
 Both topologies receive the same available evidence and model-call ceiling, but realized token use differs. The suite does not establish multi-agent superiority.
+
+![Recorded evaluation outcomes, with failures retained](docs/images/evaluation.png)
 
 ![Actual candidate SQL](docs/images/sql-repair.png)
 

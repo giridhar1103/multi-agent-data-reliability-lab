@@ -1,5 +1,6 @@
 import json
 import math
+import os
 import platform
 import subprocess
 import time
@@ -108,6 +109,9 @@ def evaluate(output: Path, mode="demo", seeds=(11, 23, 47, 89), topologies=("sin
             "python": platform.python_version(),
             "platform": platform.platform(),
             "git_commit": commit,
+            "model": os.getenv("LAB_MODEL", "unspecified") if mode == "live" else None,
+            "transport": os.getenv("LAB_MODEL_TRANSPORT", "http") if mode == "live" else None,
+            "max_model_calls": int(os.getenv("LAB_MAX_MODEL_CALLS", "8")),
         },
         "seeds": list(seeds),
         "summary": summary,
@@ -131,6 +135,7 @@ def evaluate(output: Path, mode="demo", seeds=(11, 23, 47, 89), topologies=("sin
     lines += [
         "",
         "No claim of multi-agent superiority. Same tools and call ceilings; realized token use may differ.",
+        "Model calls count responses with usage events; transport failures can add attempts without reported tokens.",
         "Latency includes subprocess startup and synthetic regression execution.",
         "Wilson intervals in JSON describe these runs only; correlated fixture seeds limit generalization.",
         "",
