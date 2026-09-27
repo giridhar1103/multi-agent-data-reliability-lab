@@ -1,11 +1,24 @@
-# Exploratory headless inference run
+# Live inference results
 
-Recorded on 2026-09-27 using the host's signed-in Codex CLI, `LAB_MODEL_TRANSPORT=codex`, `LAB_MODEL=codex-default`, seed 11, and the default eight-call ceiling. The CLI-selected model was **not pinned or recorded**. This is remote inference through a local CLI, not an on-device model benchmark.
+A twelve-case run recorded on **2026-09-27** using the signed-in Codex CLI. Configuration: `LAB_MODEL_TRANSPORT=codex`, `LAB_MODEL=codex-default`, seed 11, and an eight-call budget per investigation. The CLI selected the model; its exact version was not recorded. Inference ran remotely through the host CLI.
 
-The [raw results](results.json) retain all twelve attempted cases. Single-agent completed 6/6 with expected outcomes. Multi-agent completed 2/6 with expected outcomes; the remaining four failed at the inference boundary. Saved application errors report `Live model call failed (RuntimeError); no demo fallback`. The underlying CLI error output was not retained, so the precise cause cannot be established from these artifacts. Account usage exhaustion was observed in the surrounding development session but is not a proven per-run diagnosis.
+## **Results**
 
-Do not interpret the resulting 100% versus 33.3% outcome scores as an architecture ranking: sequential execution, an unpinned model, provider failures, and six authored fixture families confound the comparison. Failed cases remain in the denominator. Zero unnecessary repairs does not establish safety when some controls failed before producing a decision.
+| Topology | Expected outcomes | Inference failures | Calls with usage records |
+|---|---:|---:|---:|
+| Single-agent | 6/6 | 0 | 9 |
+| Multi-agent | 2/6 | 4 | 13 |
 
-Reported model calls count usage events (9 single, 13 multi), not every attempted subprocess. Token totals include CLI context overhead and omit usage from failed calls. Latency includes failures and is not a clean speed comparison. Raw report values are preserved without retroactive changes.
+[Full report](results.md) · [Raw rows](results.json)
 
-Next benchmark: pin a model/version, retain sanitized provider error categories, interleave topologies, repeat independent incidents, report completion and conditional quality separately, and measure budget-normalized cost. The existing run demonstrates the end-to-end live path and its failure handling; it does not establish production accuracy.
+The four failed runs stopped at the inference boundary. The saved error is `Live model call failed (RuntimeError); no demo fallback`. The underlying CLI output was not retained, so the specific cause is unresolved.
+
+## **How to read these numbers**
+
+These results do not rank the architectures. Runs were executed sequentially, the model was unpinned, and four cases failed before returning a decision. All twelve attempts remain in the denominator. A zero unnecessary-repair count is also inconclusive when some control cases failed to finish.
+
+Call counts cover responses with usage records, not every attempted subprocess. Token totals include CLI context overhead and exclude unreported usage from failed calls. Reported latency includes failures. The original result files are unchanged.
+
+## **Next comparison**
+
+Pin the model version, interleave the two topologies, and retain sanitized provider error categories. Use independently written incidents and report completion rate alongside decision quality. Compare token budgets as well as outcomes.

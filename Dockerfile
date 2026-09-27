@@ -1,7 +1,7 @@
 FROM python:3.11-slim@sha256:e41613d42d4891e4930f79523f93f81bbc7632584ec65e36ab055f41a800b41e
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 LAB_DATA_DIR=/data LANGSMITH_TRACING=false
 WORKDIR /app
-COPY requirements.lock pyproject.toml ./
+COPY requirements.lock pyproject.toml README.md ./
 COPY src ./src
 RUN --mount=type=secret,id=pip_ca \
     if [ -f /run/secrets/pip_ca ]; then export PIP_CERT=/run/secrets/pip_ca; fi; \
